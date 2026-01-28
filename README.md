@@ -32,17 +32,13 @@ Open PowerShell in this folder and run one of these:
 ```bash
 python "swiss chess.py"
 python "swiss chess 2.py"
-python "swiss_withList"
+python "swiss_withList.py"
 ```
 
-If you rename `swiss_withList` to `swiss_withList.py`, then run:
 
 ```bash
 python "swiss_withList.py"
 ```
 
 ## Which one should I use?
-- **Best overall**: `swiss chess.py` (better structure, safer BYE handling, tries to avoid repeat opponents).
-- **Simplest**: `swiss chess 2.py` (but has a BYE edge-case problem).
-- **Like `swiss chess 2.py` + summary window**: `swiss_withList`.
-
+- **Best overall**: `swiss_withList.py` (better structure, safer BYE handling, tries to avoid repeat opponents). I am working on this currently and making it more user-friendly. it has some repetitive window opening, and you have to close it everytime it opens. but i have conducted an online tournament on using this one, and it was successful.
