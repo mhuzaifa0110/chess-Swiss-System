@@ -1,0 +1,135 @@
+import tkinter as tk  
+from tkinter import simpledialog, messagebox  
+
+class ChessTournament:  
+    def __init__(self, root):  
+        self.root = root  
+        self.root.title("Chess Tournament Management")  
+        
+        self.players = {}  # Store player names  
+        self.scores = {}  # Store player scores  
+        self.rounds = 0  # Total number of rounds  
+        self.current_round = 0  # Current round number  
+        self.pairings = []  # Current round pairings  
+        self.pairing_window = None  # Current pairing window  
+
+        # UI buttons  
+        tk.Button(root, text="Add Player", command=self.add_player).pack(pady=10)  
+        tk.Button(root, text="Set Rounds", command=self.set_rounds).pack(pady=10)  
+        tk.Button(root, text="Start First Round", command=self.start_first_round).pack(pady=10)  
+        tk.Button(root, text="Reset", command=self.reset).pack(pady=10)  
+
+    def add_player(self):  
+        player_name = simpledialog.askstring("Input", "Enter player's name:")  
+        if player_name and player_name not in self.players:  
+            self.players[player_name] = player_name  
+            self.scores[player_name] = 0  
+            messagebox.showinfo("Success", f"Player '{player_name}' added.")  
+        else:  
+            messagebox.showwarning("Warning", "Player already registered or invalid name.")  
+
+    def set_rounds(self):  
+        if not self.players:  
+            messagebox.showwarning("Warning", "No players registered.")  
+            return  
+
+        try:  
+            self.rounds = int(simpledialog.askstring("Input", "Enter number of rounds:"))  
+            self.current_round = 0  
+            messagebox.showinfo("Success", f"Rounds set to: {self.rounds}")  
+        except ValueError:  
+            messagebox.showerror("Error", "Invalid input. Please enter a number.")  
+
+    def start_first_round(self):  
+        if self.rounds <= 0:  
+            messagebox.showwarning("Warning", "Please set the number of rounds first.")  
+            return  
+        self.current_round = 1  # Start with the first round  
+        self.pair_players()  # Create pairings for the first round  
+
+    def pair_players(self):  
+        players = list(self.players.values())  
+        if len(players) < 2:  
+            messagebox.showwarning("Warning", "Not enough players to pair.")  
+            return  
+        
+        # Sort players by score  
+        players.sort(key=lambda x: self.scores[x], reverse=True)  
+        pairs = []  
+        
+        # Create pairings and handle an odd player count  
+        while len(players) > 1:  
+            pairs.append((players.pop(0), players.pop(0)))  # Pair the top two players  
+        if players:  # If there's an odd player left without a pair  
+            pairs.append((players.pop(0), "Bye"))  # Assign a bye to the last player  
+        
+        self.pairings = pairs  
+        self.show_pairings()  
+
+    def show_pairings(self):  
+        if self.pairing_window is not None:  
+            self.pairing_window.destroy()  # Close previous pairing window if exists  
+
+        self.pairing_window = tk.Toplevel(self.root)  
+        self.pairing_window.title(f"Round {self.current_round} Pairings")  
+
+        tk.Label(self.pairing_window, text="Enter results for the following pairings:", font=("Arial", 12)).pack(pady=10)  
+
+        self.result_entries = {}  
+        for player1, player2 in self.pairings:  
+            frame = tk.Frame(self.pairing_window)  
+            frame.pack(pady=5)  
+            tk.Label(frame, text=f"{player1} vs {player2}:").pack(side=tk.LEFT)  
+            entry = tk.Entry(frame)  
+            entry.pack(side=tk.LEFT)  
+            self.result_entries[(player1, player2)] = entry  
+
+        tk.Button(self.pairing_window, text="Record Results", command=self.record_result).pack(pady=10)  
+        tk.Button(self.pairing_window, text="Next Round", command=self.next_round).pack(pady=10)  
+
+    def record_result(self):  
+        for (player1, player2), entry in self.result_entries.items():  
+            result = entry.get().strip().lower()  
+            if result == player1.lower():  
+                self.scores[player1] += 1  
+            elif result == player2.lower():  
+                self.scores[player2] += 1  
+            elif result == "draw":  
+                self.scores[player1] += 0.5  
+                self.scores[player2] += 0.5  
+
+        messagebox.showinfo("Results Recorded", "Results for the current round have been recorded.")  
+
+    def next_round(self):  
+        if self.current_round >= self.rounds:  
+            self.show_standings()  # Show standings after the last round  
+            return  
+
+        self.current_round += 1  # Move to the next round  
+        self.pair_players()  # Generate new pairings for the next round  
+
+    def show_standings(self):  
+        standings_window = tk.Toplevel(self.root)  
+        standings_window.title("Final Standings")  
+
+        tk.Label(standings_window, text="Final Standings:", font=("Arial", 12)).pack(pady=10)  
+
+        sorted_standings = sorted(self.scores.items(), key=lambda x: x[1], reverse=True)  
+        for player, score in sorted_standings:  
+            tk.Label(standings_window, text=f"{player} ({score} points)").pack()  
+
+    def reset(self):  
+        self.players.clear()  
+        self.scores.clear()  
+        self.rounds = 0  
+        self.current_round = 0  
+        self.pairings = []  
+        if self.pairing_window is not None:  
+            self.pairing_window.destroy()  
+            self.pairing_window = None  
+        messagebox.showinfo("Reset", "Tournament has been reset.")  
+
+if __name__ == "__main__":  
+    root = tk.Tk()  
+    app = ChessTournament(root)  
+    root.mainloop()
